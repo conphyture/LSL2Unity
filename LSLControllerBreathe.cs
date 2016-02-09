@@ -72,7 +72,7 @@ public class LSLControllerBreathe : MonoBehaviour {
 
 
 				int currentItem = listMax.Count;
-				Debug.Log(currentItem);
+				//Debug.Log(currentItem);
 				if (sample[0] > listMax[currentItem-1])
 				{
 					listMax[currentItem-1] = sample[0];
@@ -104,17 +104,40 @@ public class LSLControllerBreathe : MonoBehaviour {
 			}
 			else
 			{
-				// wait until an EEG stream shows up
-				liblsl.StreamInfo[] results = liblsl.resolve_stream("type", "breath", 1, 0.5f);
-				
-				// open an inlet and print some interesting info about the stream (meta-data, etc.)
-				inlet = new liblsl.StreamInlet(results[0]);
-				Debug.Log(inlet.info().as_xml());
+				string streamType = "tobe";
+				string streamName = "breath";
+				Debug.Log ("Connect to LSL stream type: " + streamType);
+				// wait until the correct type shows up
+				liblsl.StreamInfo[] results = liblsl.resolve_stream("type", streamType, 1, 0.5f);
+				if ( results.Length <= 0) {
+					Debug.Log ("No streams found");
+					return;
+				}
+				else {
+					Debug.Log ("Found " + results.Length + " streams, looking for name: " + streamName);
+				}
+				liblsl.StreamInlet tmpInlet;
+				for (int i=0; i < results.Length; i++) {
+					// open an inlet and print some interesting info about the stream (meta-data, etc.)
+					tmpInlet = new liblsl.StreamInlet(results[i]);
+					liblsl.StreamInfo info = tmpInlet.info();
+					Debug.Log ("Stream number: " + i + ", name: " + info.name ());
+					if (info.name().Equals(streamName)) {
+						Debug.Log ("Stream found.");
+						inlet = tmpInlet;
+						break;
+					}
+				}
 
-				inlet.pull_sample(sample, 0.5f);
+			    if (inlet != null) {
+					inlet.pull_sample(sample, 0.5f);
 
-				listMax[0] = sample[0];
-				listMin[0] = sample[0];
+					listMax[0] = sample[0];
+					listMin[0] = sample[0];
+				}
+				else {
+					Debug.Log ("Stream not found.");
+				}
 			}
 		}
 	}
