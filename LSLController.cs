@@ -77,7 +77,7 @@ public class LSLController : MonoBehaviour
 
 	private void log(String mes) {
 		if (verbose) {
-			Debug.Log (mes);
+			Debug.Log (ToString() + ": " + mes);
 		}
 	}
 
@@ -251,5 +251,10 @@ public class LSLController : MonoBehaviour
 	{
 		
 		finished = true;
+	}
+
+	public override string ToString ()
+	{
+		return "LSLController_" + streamType + "-" + streamName;
 	}
 }
