@@ -36,6 +36,9 @@ public class LSLController : MonoBehaviour
 	// flag raised for each trigger, to be lowered by clients
 	public bool trigger = false;
 
+	// will it spam debug output?
+	public bool verbose = false;
+
 	private float[] sample = new float[2];
 
 	// used for computing sliding window
@@ -73,6 +76,12 @@ public class LSLController : MonoBehaviour
 		return inlet != null;
 	}
 
+	private void log(String mes) {
+		if (verbose) {
+			Debug.Log (mes);
+		}
+	}
+
 	// @return value fetch from LSL stream, should check that still connected after call to be sure that a new value were read
 	private float readRawValue() {
 		if (isConnected ()) {
@@ -81,12 +90,12 @@ public class LSLController : MonoBehaviour
 			try {
 				timestamp = inlet.pull_sample (sample, 1);
 			} catch (TimeoutException) {
-				Debug.Log ("Timeout");
+				log ("Timeout");
 			} catch (liblsl.LostException) {
-				Debug.Log ("Connection lost");
+				log ("Connection lost");
 			}
 			if (timestamp == 0) {
-				Debug.Log ("No sample, drop connection");
+				log ("No sample, drop connection");
 				inlet = null;
 			}
 			// got sample, let's process it
@@ -101,14 +110,14 @@ public class LSLController : MonoBehaviour
 
 	// look-up stream and fetch first value
 	private void connect() {
-		Debug.Log ("Connect to LSL stream type: " + streamType);
+		log ("Connect to LSL stream type: " + streamType);
 		// wait until the correct type shows up
 		liblsl.StreamInfo[] results = liblsl.resolve_stream ("type", streamType, 1, 0.5f);
 		if (results.Length <= 0) {
-			Debug.Log ("No streams found");
+			log ("No streams found");
 			return;
 		} else {
-			Debug.Log ("Found " + results.Length + " streams, looking for name: " + streamName);
+			log ("Found " + results.Length + " streams, looking for name: " + streamName);
 		}
 		liblsl.StreamInlet tmpInlet;
 		for (int i=0; i < results.Length; i++) {
@@ -116,19 +125,19 @@ public class LSLController : MonoBehaviour
 			tmpInlet = new liblsl.StreamInlet (results [i]);
 			try {
 				liblsl.StreamInfo info = tmpInlet.info ();
-				Debug.Log ("Stream number: " + i + ", name: " + info.name ());
+				log ("Stream number: " + i + ", name: " + info.name ());
 				if (info.name ().Equals (streamName)) {
-					Debug.Log ("Stream found.");
+					log ("Stream found.");
 					inlet = tmpInlet;
 					break;
 				}
 			}
 			// could lost stream while looping
 			catch (TimeoutException) {
-				Debug.Log ("Timeout while fetching info.");
+				log ("Timeout while fetching info.");
 				continue;
 			} catch (liblsl.LostException) {
-				Debug.Log ("Connection lost while fetching info.");
+				log ("Connection lost while fetching info.");
 				continue;
 			}
 		}
@@ -142,7 +151,7 @@ public class LSLController : MonoBehaviour
 				init = true;
 			}
 		} else {
-			Debug.Log ("Stream not found.");
+			log ("Stream not found.");
 		}
 	}
 
@@ -213,7 +222,7 @@ public class LSLController : MonoBehaviour
 				{
 					if (lastTrigger == false)
 					{
-						Debug.Log("Beat");
+						log("Beat");
 						trigger = true;
 					}
 					lastTrigger = true;
