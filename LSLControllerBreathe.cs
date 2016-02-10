@@ -10,6 +10,8 @@ using System;
 
 public class LSLControllerBreathe : MonoBehaviour
 {
+	// will return that if nothing comes
+	private const float defaultValue = 0;
 
 	// info about the stream we seek
 	public string streamName = "breath";
@@ -19,7 +21,7 @@ public class LSLControllerBreathe : MonoBehaviour
 	public int maxWindowSize = 10;
 
 	// output value
-	public float value = 0; // Between 0 and 1
+	public float value = defaultValue; // Between 0 and 1
 
 	// FIXME: handle only one channel (+1 for stim from OpenViBE gipsa box)
 	private float[] sample = new float[2];
@@ -81,7 +83,7 @@ public class LSLControllerBreathe : MonoBehaviour
 			}
 		}
 		// poor default
-		return -1;
+		return defaultValue;
 	}
 
 
@@ -188,7 +190,12 @@ public class LSLControllerBreathe : MonoBehaviour
 			} 
 			// update value otherwise
 			else {
-				value = getAutoscale(readRawValue());
+				if (maxWindowSize > 0) {
+					value = getAutoscale(readRawValue());
+				}
+				else {
+					value = readRawValue();
+				}
 			}
 		}
 	}
