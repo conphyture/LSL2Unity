@@ -12,9 +12,7 @@ using System;
 
 // NB: will drop connection in no sample received for 1s
 
-// FIXME: handle only one channel (+1 for stim from OpenViBE gipsa box)
-
-// TODO: not skippable triggers
+// NB: does not handle chunks(?), fetch only first channel
 
 public class LSLController : MonoBehaviour
 {
@@ -39,7 +37,8 @@ public class LSLController : MonoBehaviour
 	// will it spam debug output?
 	public bool verbose = false;
 
-	private float[] sample = new float[2];
+	private int nbChannels = 1;
+	private float[] sample;
 
 	// used for computing sliding window
 	float realTime = 0;
@@ -127,9 +126,16 @@ public class LSLController : MonoBehaviour
 				liblsl.StreamInfo info = tmpInlet.info ();
 				log ("Stream number: " + i + ", name: " + info.name ());
 				if (info.name ().Equals (streamName)) {
-					log ("Stream found.");
-					inlet = tmpInlet;
-					break;
+					nbChannels = info.channel_count();
+					log ("Stream found with " + nbChannels + " channels");
+					if (nbChannels < 1) {
+						log ("Error, no channels found, skip.");
+					}
+					else {
+						inlet = tmpInlet;
+						sample = new float[nbChannels];
+						break;
+					}
 				}
 			}
 			// could lost stream while looping
