@@ -16,7 +16,7 @@ using System;
 
 // TODO: not skippable triggers
 
-public class LSLControllerBreathe : MonoBehaviour
+public class LSLController : MonoBehaviour
 {
 	// will return that if nothing comes
 	private const float defaultValue = 0;
