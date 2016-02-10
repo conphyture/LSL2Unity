@@ -900,8 +900,14 @@ public class liblsl
 
     class dll
     {
-        /// Name of the binary to include -- replace this if you are on a non-Windows platform (e.g., liblsl64.so)
-        const string libname = "Assets/LSL2Unity/liblsl64.dll";
+		// Name of the binary to include -- replace this if you are on a non-Windows platform (e.g., liblsl64.so)
+	    // consider if launched within unity or compiled
+		#if UNITY_EDITOR_WIN 
+		const string libname = "Assets/LSL2Unity/lib/liblsl64.dll";
+		// #elif UNITY_STANDALONE_WIN
+		#else
+		const string libname =  "../Plugins/liblsl64.dll";
+		#endif
 
         [DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, ExactSpelling = true)]
         public static extern int lsl_protocol_version();
