@@ -5,8 +5,16 @@ using System.Threading;
 using System.Collections.Generic;
 using System;
 
+
+
+// fetch LSL data in the background, possible to get raw value or to use a sliding window for autoscaling between 0 and 1 (default range).
+// a "trigger" is set as soon as a value is positive, it is up to the client to lower the flag.
+
 // NB: will drop connection in no sample received for 1s
-// TODO: catch exception (?)
+
+// FIXME: handle only one channel (+1 for stim from OpenViBE gipsa box)
+
+// TODO: not skippable triggers
 
 public class LSLControllerBreathe : MonoBehaviour
 {
@@ -23,24 +31,28 @@ public class LSLControllerBreathe : MonoBehaviour
 	// output value
 	public float value = defaultValue; // Between 0 and 1
 
-	// FIXME: handle only one channel (+1 for stim from OpenViBE gipsa box)
+	// trigger mechanism, set to last value read
+	public bool lastTrigger = false;
+	// flag raised for each trigger, to be lowered by clients
+	public bool trigger = false;
+
 	private float[] sample = new float[2];
 
 	// used for computing sliding window
 	float realTime = 0;
 	float lastTime = 0;
 
+	// misc internal state
 	liblsl.StreamInlet inlet = null;
 	private Thread dataThread;
 	private bool finished = false;
 
+	// if we got our first value to init sliding window
 	private bool init = false;
-
-
-	//Timer
-
+	//Timer for sliding window
 	List<float> listMax = new List<float> ();
 	List<float> listMin = new List<float> ();
+
 	
 	// Use this for initialization
 	void Start ()
@@ -195,6 +207,20 @@ public class LSLControllerBreathe : MonoBehaviour
 				}
 				else {
 					value = readRawValue();
+				}
+
+				if (value > 0)
+				{
+					if (lastTrigger == false)
+					{
+						Debug.Log("Beat");
+						trigger = true;
+					}
+					lastTrigger = true;
+				}
+				else
+				{
+					lastTrigger = false;
 				}
 			}
 		}
